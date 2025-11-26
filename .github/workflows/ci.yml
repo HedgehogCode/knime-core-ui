@@ -9,10 +9,13 @@ on:
 
 jobs:
   lint-test-build:
-    name: Lint, tests, and build
+    name: ${{ matrix.package }} - Lint, tests, and build
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [core-ui, scripting-editor]
     defaults:
       run:
         working-directory: js-src
@@ -28,44 +31,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Audit
+        if: matrix.package == 'core-ui'
         run: pnpm run audit
-
-      - name: CORE-UI - Type check
+      - name: Type check
         run: |
-          cd packages/core-ui
+          cd packages/${{ matrix.package }}
           pnpm run type-check
-      - name: CORE-UI - Lint and format check
+      - name: Lint and format check
         run: |
-          cd packages/core-ui
+          cd packages/${{ matrix.package }}
           pnpm run ci:lint-format
-      - name: CORE-UI - Run coverage
+      - name: Run coverage
         run: |
-          cd packages/core-ui
+          cd packages/${{ matrix.package }}
           pnpm run coverage
-      - name: CORE-UI - Build
+      - name: Build
         run: |
-          cd packages/core-ui
+          cd packages/${{ matrix.package }}
           pnpm run build
-
-      - name: SCRIPTING-EDITOR - Type check
-        run: |
-          cd packages/scripting-editor
-          pnpm run type-check
-      - name: SCRIPTING-EDITOR - Lint and format check
-        run: |
-          cd packages/scripting-editor
-          pnpm run ci:lint-format
-      - name: SCRIPTING-EDITOR - Run coverage
-        run: |
-          cd packages/scripting-editor
-          pnpm run coverage
-      - name: SCRIPTING-EDITOR - Build
-        run: |
-          cd packages/scripting-editor
-          pnpm run build
-
-      - name: Upload scripting-editor build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: scripting-editor-dist
-          path: js-src/packages/scripting-editor/dist/**
